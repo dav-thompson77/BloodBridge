@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { requireRole } from "@/lib/auth";
 import { BLOOD_TYPES } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -52,7 +53,7 @@ export default async function StaffBloodRequestsPage() {
                 id="blood_type_needed"
                 name="blood_type_needed"
                 required
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 {BLOOD_TYPES.map((bloodType) => (
                   <option key={bloodType} value={bloodType}>
@@ -67,7 +68,7 @@ export default async function StaffBloodRequestsPage() {
                 id="urgency"
                 name="urgency"
                 defaultValue="medium"
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="low">low</option>
                 <option value="medium">medium</option>
@@ -81,7 +82,7 @@ export default async function StaffBloodRequestsPage() {
                 id="centre_id"
                 name="centre_id"
                 required
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">Select centre</option>
                 {centres.map((centre) => (
@@ -97,7 +98,11 @@ export default async function StaffBloodRequestsPage() {
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="note">Message / note</Label>
-              <Input id="note" name="note" placeholder="Context for donor outreach" />
+              <Textarea
+                id="note"
+                name="note"
+                placeholder="Context for donor outreach and hospital request details"
+              />
             </div>
             <Button type="submit" className="md:col-span-2">
               Create request + generate outreach copy

@@ -1,10 +1,25 @@
 import { Button } from "@/components/ui/button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { createClient } from "@/lib/supabase/server";
+import { Badge } from "@/components/ui/badge";
 import {
-  Activity,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { ThemeSwitcher } from "@/components/theme-switcher";
+import { StatusBadge } from "@/components/status-badge";
+import { createClient } from "@/lib/supabase/server";
+import { formatDate } from "@/lib/utils";
+import {
   BellRing,
+  Building2,
+  Clock3,
   Droplets,
+  HeartPulse,
+  ShieldCheck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -15,11 +30,49 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const [
+    centresCountResult,
+    donorsCountResult,
+    alertsCountResult,
+    responsesCountResult,
+    urgentRequestsResult,
+  ] = await Promise.all([
+    supabase
+      .from("blood_centres")
+      .select("id", { head: true, count: "exact" })
+      .eq("is_active", true),
+    supabase
+      .from("donor_profiles")
+      .select("profile_id", { head: true, count: "exact" }),
+    supabase.from("donor_alerts").select("id", { head: true, count: "exact" }),
+    supabase
+      .from("donor_alert_responses")
+      .select("id", { head: true, count: "exact" })
+      .neq("response_status", "pending"),
+    supabase
+      .from("blood_requests")
+      .select(
+        "id, blood_type_needed, urgency, required_by, blood_centres(name, parish)",
+      )
+      .eq("status", "active")
+      .order("required_by", { ascending: true })
+      .limit(4),
+  ]);
+
+  const centreCount = centresCountResult.count ?? 0;
+  const donorCount = donorsCountResult.count ?? 0;
+  const alertCount = alertsCountResult.count ?? 0;
+  const responseCount = responsesCountResult.count ?? 0;
+  const urgentRequests = urgentRequestsResult.data ?? [];
+
   return (
     <main className="min-h-screen bg-background">
-      <section className="border-b border-red-500/20">
+      <section className="border-b bg-card/80">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-          <Link href="/" className="text-lg font-semibold">
+          <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Droplets className="h-4 w-4" />
+            </span>
             Blood Bridge
           </Link>
           <div className="flex items-center gap-2">
@@ -42,136 +95,226 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 md:grid-cols-2 md:px-6 md:py-16">
+      <section className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 md:grid-cols-2 md:px-6 md:py-14">
         <div className="space-y-6">
-          <p className="inline-flex items-center rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-red-300">
+          <Badge
+            variant="outline"
+            className="border-primary/30 bg-primary/10 text-primary"
+          >
             Real-time donor coordination
-          </p>
+          </Badge>
           <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-            Help blood banks find and re-engage eligible donors in real time.
+            Hospital-ready donor coordination for Jamaican blood services.
           </h1>
-          <p className="text-lg text-muted-foreground">
-            Blood Bridge helps blood services register, verify, schedule, and re-engage donors while supporting the
-            official screening process.
+          <p className="text-lg leading-relaxed text-foreground/80">
+            Blood Bridge helps blood services register, verify, schedule, and
+            re-engage eligible donors while supporting the official screening
+            process.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg" className="bg-red-600 text-white hover:bg-red-500">
-              <Link href={user ? "/dashboard" : "/auth/sign-up"}>Register as a donor</Link>
+            <Button asChild size="lg">
+              <Link href={user ? "/dashboard" : "/auth/sign-up"}>
+                Register as a donor
+              </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/centres">View donation centres</Link>
             </Button>
           </div>
 
-          <div className="grid gap-3 pt-2 sm:grid-cols-2">
-            <div className="rounded-xl border border-red-500/20 bg-card/70 p-4">
-              <p className="mb-1 text-sm font-semibold text-red-300">For Donors</p>
-              <p className="text-sm text-muted-foreground">
+          <div className="grid gap-3 pt-1 sm:grid-cols-2">
+            <Card className="border-primary/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base text-primary">For Donors</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-foreground/80">
                 Register, track status, book appointments, and respond to alerts.
-              </p>
+              </CardContent>
+            </Card>
+            <Card className="border-primary/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base text-primary">
+                  For Blood Bank Staff
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-foreground/80">
+                Create requests, filter donors, send alerts, and coordinate
+                appointments.
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle>How Blood Bridge works</CardTitle>
+            <CardDescription>
+              The platform supports the official blood donation workflow.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-foreground/80">
+            <div className="grid gap-2 rounded-md border bg-background p-3">
+              <p>1. Registration and account setup</p>
+              <p>2. ID verification and medical screening</p>
+              <p>3. Haemoglobin check and medical interview</p>
+              <p>4. Approval / temporary deferral updates</p>
+              <p>5. Donation appointment scheduling</p>
+              <p>6. Realtime alerts and response tracking</p>
             </div>
-            <div className="rounded-xl border border-red-500/20 bg-card/70 p-4">
-              <p className="mb-1 text-sm font-semibold text-red-300">For Blood Bank Staff</p>
+            <Alert className="border-primary/20 bg-accent/45">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              <AlertTitle>Clinical safety first</AlertTitle>
+              <AlertDescription>
+                Blood Bridge coordinates communication and scheduling. Final
+                eligibility decisions remain with qualified clinical teams.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6">
+        <div className="grid gap-3 rounded-2xl border bg-card p-4 md:grid-cols-4">
+          <Card className="border-0 shadow-none">
+            <CardContent className="p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Coverage
+              </p>
+              <p className="mt-1 text-xl font-semibold">{centreCount} blood centres</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-none">
+            <CardContent className="p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Donor data
+              </p>
+              <p className="mt-1 text-xl font-semibold">{donorCount} donor profiles</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-none">
+            <CardContent className="p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Communication
+              </p>
+              <p className="mt-1 text-xl font-semibold">{alertCount} realtime alerts</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-none">
+            <CardContent className="p-3">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                Coordination
+              </p>
+              <p className="mt-1 text-xl font-semibold">{responseCount} responses logged</p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6">
+        <Card className="border-red-200 dark:border-red-900">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle className="text-2xl">Urgent requests</CardTitle>
+              <CardDescription>
+                Live operational view for blood demand across centres.
+              </CardDescription>
+            </div>
+            <Badge className="bg-red-600 text-white hover:bg-red-600">
+              <Clock3 className="mr-1 h-3.5 w-3.5" />
+              live priority feed
+            </Badge>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-2">
+            {urgentRequests.length ? (
+              urgentRequests.map((request) => {
+                const centre = Array.isArray(request.blood_centres)
+                  ? request.blood_centres[0]
+                  : request.blood_centres;
+
+                return (
+                  <div
+                    key={request.id}
+                    className="rounded-lg border border-red-200 bg-red-50/70 p-3 dark:border-red-900 dark:bg-red-950/20"
+                  >
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-red-900 dark:text-red-200">
+                        {request.blood_type_needed} needed at {centre?.name ?? "Centre"}
+                      </p>
+                      <StatusBadge status={request.urgency} />
+                    </div>
+                    <p className="text-xs text-red-800/90 dark:text-red-300/90">
+                      {centre?.parish ?? "Parish"} • Required by{" "}
+                      {formatDate(request.required_by)}
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
               <p className="text-sm text-muted-foreground">
-                Create requests, filter donors, send alerts, and coordinate appointments.
+                No active urgent requests right now.
               </p>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-red-500/20 bg-card p-6">
-          <h2 className="mb-4 text-xl font-semibold">How Blood Bridge works</h2>
-          <ul className="space-y-3 text-sm text-muted-foreground">
-            <li>1. Registration and account setup</li>
-            <li>2. ID verification</li>
-            <li>3. Medical screening and haemoglobin check</li>
-            <li>4. Medical interview and approval / temporary deferral</li>
-            <li>5. Donation appointment scheduling</li>
-            <li>6. Real-time alerts and donor response tracking</li>
-          </ul>
-          <p className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-100">
-            Important: Blood Bridge supports coordination and communication. Clinical screening and final eligibility
-            decisions remain with qualified medical staff.
-          </p>
-        </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6">
-        <div className="grid gap-3 rounded-2xl border border-red-500/20 bg-card/60 p-4 md:grid-cols-4">
-          <div className="rounded-lg border border-red-500/20 bg-background/60 p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Coverage</p>
-            <p className="mt-1 text-xl font-semibold">3 blood centres</p>
-          </div>
-          <div className="rounded-lg border border-red-500/20 bg-background/60 p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Donor data</p>
-            <p className="mt-1 text-xl font-semibold">6 donor profiles</p>
-          </div>
-          <div className="rounded-lg border border-red-500/20 bg-background/60 p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Communication</p>
-            <p className="mt-1 text-xl font-semibold">Realtime alerts</p>
-          </div>
-          <div className="rounded-lg border border-red-500/20 bg-background/60 p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Access model</p>
-            <p className="mt-1 text-xl font-semibold">Role-based coordination</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6">
-        <div className="rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-950/40 via-red-900/20 to-transparent p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">Urgent requests</h2>
-            <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/15 px-2.5 py-1 text-xs text-red-200">
-              <Activity className="h-3.5 w-3.5" />
-              live demo feed
-            </span>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded-lg border border-red-500/30 bg-background/70 p-3">
-              <p className="text-sm font-medium text-red-200">O- needed at Kingston Centre</p>
-              <p className="mt-1 text-xs text-muted-foreground">Critical stock threshold triggered</p>
-            </div>
-            <div className="rounded-lg border border-red-500/30 bg-background/70 p-3">
-              <p className="text-sm font-medium text-red-200">A+ needed within 24 hours</p>
-              <p className="mt-1 text-xs text-muted-foreground">Surgery support request is active</p>
-            </div>
-            <div className="rounded-lg border border-red-500/30 bg-background/70 p-3">
-              <p className="text-sm font-medium text-red-200">12 matching donors notified</p>
-              <p className="mt-1 text-xs text-muted-foreground">Targeted outreach sent by blood type and status</p>
-            </div>
-            <div className="rounded-lg border border-red-500/30 bg-background/70 p-3">
-              <p className="text-sm font-medium text-red-200">4 responses received</p>
-              <p className="mt-1 text-xs text-muted-foreground">Interested and booked actions synced instantly</p>
-            </div>
-          </div>
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </section>
 
       <section className="mx-auto grid w-full max-w-6xl gap-4 px-4 pb-16 md:grid-cols-3 md:px-6">
-        <div className="rounded-xl border border-red-500/20 p-5">
-          <div className="mb-3 inline-flex rounded-md bg-red-500/15 p-2 text-red-300">
-            <Droplets className="h-4 w-4" />
-          </div>
-          <h3 className="font-semibold">Donor tools</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Guided profile, status tracker, and appointment flow.</p>
-          <p className="mt-3 text-xs font-medium text-red-300">6-step donor journey</p>
-        </div>
-        <div className="rounded-xl border border-red-500/20 p-5">
-          <div className="mb-3 inline-flex rounded-md bg-red-500/15 p-2 text-red-300">
-            <Users className="h-4 w-4" />
-          </div>
-          <h3 className="font-semibold">Staff tools</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Request creation, filtering, outreach, and scheduling.</p>
-          <p className="mt-3 text-xs font-medium text-red-300">Role-based coordination</p>
-        </div>
-        <div className="rounded-xl border border-red-500/20 p-5">
-          <div className="mb-3 inline-flex rounded-md bg-red-500/15 p-2 text-red-300">
-            <BellRing className="h-4 w-4" />
-          </div>
-          <h3 className="font-semibold">Realtime updates</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Alerts, responses, and appointment changes refresh immediately.
-          </p>
-          <p className="mt-3 text-xs font-medium text-red-300">Instant alert sync</p>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <HeartPulse className="h-4 w-4" />
+            </div>
+            <CardTitle className="text-lg">Donor tools</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-foreground/80">
+              Guided profile, status tracker, and appointment flow.
+            </p>
+            <Badge variant="outline" className="border-primary/30 text-primary">
+              6-step donor journey
+            </Badge>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Users className="h-4 w-4" />
+            </div>
+            <CardTitle className="text-lg">Staff tools</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-foreground/80">
+              Request creation, filtering, outreach, and scheduling.
+            </p>
+            <Badge variant="outline" className="border-primary/30 text-primary">
+              Role-based coordination
+            </Badge>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <BellRing className="h-4 w-4" />
+            </div>
+            <CardTitle className="text-lg">Realtime updates</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-foreground/80">
+              Alerts, responses, and appointment changes refresh instantly.
+            </p>
+            <Badge variant="outline" className="border-primary/30 text-primary">
+              Instant alert sync
+            </Badge>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-12 md:px-6">
+        <Separator className="mb-6" />
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <Building2 className="h-3.5 w-3.5 text-primary" />
+          Built for blood services, hospitals, and donor coordination teams in
+          Jamaica.
         </div>
       </section>
     </main>

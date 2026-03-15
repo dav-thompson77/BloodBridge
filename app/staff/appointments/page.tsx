@@ -81,7 +81,7 @@ export default async function StaffAppointmentsPage() {
                 id="donor_profile_id"
                 name="donor_profile_id"
                 required
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">Select donor</option>
                 {donors.map((donor) => (
@@ -97,7 +97,7 @@ export default async function StaffAppointmentsPage() {
                 id="centre_id"
                 name="centre_id"
                 required
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">Select centre</option>
                 {centres.map((centre) => (
@@ -112,7 +112,7 @@ export default async function StaffAppointmentsPage() {
               <select
                 id="blood_request_id"
                 name="blood_request_id"
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">None</option>
                 {requests.map((request) => (
@@ -128,7 +128,7 @@ export default async function StaffAppointmentsPage() {
                 id="appointment_type"
                 name="appointment_type"
                 defaultValue="screening"
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="blood_typing">blood_typing</option>
                 <option value="screening">screening</option>
@@ -183,7 +183,7 @@ export default async function StaffAppointmentsPage() {
                     <select
                       name="status"
                       defaultValue={appointment.status}
-                      className="h-9 rounded-md border bg-transparent px-3 text-sm"
+                      className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm"
                     >
                       <option value="scheduled">scheduled</option>
                       <option value="completed">completed</option>

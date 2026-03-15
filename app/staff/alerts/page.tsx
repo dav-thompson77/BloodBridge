@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/utils";
 
@@ -83,7 +84,7 @@ export default async function StaffAlertsPage() {
                 id="blood_request_id"
                 name="blood_request_id"
                 required
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">Select request</option>
                 {requests.map((request) => (
@@ -98,7 +99,7 @@ export default async function StaffAlertsPage() {
               <select
                 id="donor_profile_id"
                 name="donor_profile_id"
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">Broadcast to matching approved donors</option>
                 {donors.map((donor) => (
@@ -110,7 +111,7 @@ export default async function StaffAlertsPage() {
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="message">Alert message</Label>
-              <Input
+              <Textarea
                 id="message"
                 name="message"
                 required

@@ -1,4 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/utils";
 
@@ -31,30 +39,30 @@ export default async function DonorDonationHistoryPage() {
       </CardHeader>
       <CardContent>
         {donations?.length ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="py-2">Date</th>
-                  <th className="py-2">Centre</th>
-                  <th className="py-2">Blood type</th>
-                  <th className="py-2">Units</th>
-                  <th className="py-2">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {donations.map((donation) => (
-                  <tr key={donation.id} className="border-b">
-                    <td className="py-2">{formatDateTime(donation.donated_at)}</td>
-                    <td className="py-2">{centreNameFromJoin(donation.blood_centres)}</td>
-                    <td className="py-2">{donation.blood_type}</td>
-                    <td className="py-2">{donation.units}</td>
-                    <td className="py-2 text-muted-foreground">{donation.notes ?? "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Centre</TableHead>
+                <TableHead>Blood type</TableHead>
+                <TableHead>Units</TableHead>
+                <TableHead>Notes</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {donations.map((donation) => (
+                <TableRow key={donation.id}>
+                  <TableCell>{formatDateTime(donation.donated_at)}</TableCell>
+                  <TableCell>{centreNameFromJoin(donation.blood_centres)}</TableCell>
+                  <TableCell>{donation.blood_type}</TableCell>
+                  <TableCell>{donation.units}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {donation.notes ?? "-"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         ) : (
           <p className="text-sm text-muted-foreground">No donation records yet.</p>
         )}

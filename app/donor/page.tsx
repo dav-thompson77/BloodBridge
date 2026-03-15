@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/status-badge";
 import { RealtimeRefresher } from "@/components/realtime/realtime-refresher";
 import { requireRole } from "@/lib/auth";
 import { formatDate, formatDateTime, getDaysUntil } from "@/lib/utils";
+import { CalendarClock, CheckCircle2, HeartPulse } from "lucide-react";
 
 const verificationLabels: Array<{ key: string; label: string }> = [
   { key: "registered", label: "Registered" },
@@ -66,7 +69,7 @@ export default async function DonorDashboardPage() {
       <RealtimeRefresher donorProfileId={profile.id} />
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <Card className="border-primary/15">
           <CardHeader>
             <CardDescription>Current status</CardDescription>
             <CardTitle className="text-lg">
@@ -74,19 +77,19 @@ export default async function DonorDashboardPage() {
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="border-primary/15">
           <CardHeader>
             <CardDescription>Blood type</CardDescription>
             <CardTitle>{donorProfile?.blood_type ?? "Unknown"}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="border-primary/15">
           <CardHeader>
             <CardDescription>Total donations</CardDescription>
             <CardTitle>{totalDonations}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
+        <Card className="border-primary/15">
           <CardHeader>
             <CardDescription>Next eligible donation</CardDescription>
             <CardTitle className="text-base">
@@ -100,8 +103,17 @@ export default async function DonorDashboardPage() {
         </Card>
       </div>
 
+      <Alert className="border-primary/20 bg-accent/40">
+        <HeartPulse className="h-4 w-4 text-primary" />
+        <AlertTitle>Official screening workflow</AlertTitle>
+        <AlertDescription>
+          Your dashboard helps track progress, but final donation approval is
+          completed by qualified medical staff.
+        </AlertDescription>
+      </Alert>
+
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="border-primary/15">
           <CardHeader>
             <CardTitle>Eligibility tracker</CardTitle>
             <CardDescription>
@@ -113,7 +125,7 @@ export default async function DonorDashboardPage() {
               const done = Boolean((verification as Record<string, boolean> | null)?.[step.key]);
               return (
                 <div key={step.key} className="flex items-center justify-between rounded-md border p-3">
-                  <span className="text-sm">{step.label}</span>
+                  <span className="text-sm text-foreground/90">{step.label}</span>
                   <StatusBadge status={done ? "booked" : "pending"} />
                 </div>
               );
@@ -130,7 +142,7 @@ export default async function DonorDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/15">
           <CardHeader>
             <CardTitle>Upcoming appointments</CardTitle>
             <CardDescription>Your next blood typing, screening, and donation slots.</CardDescription>
@@ -143,7 +155,7 @@ export default async function DonorDashboardPage() {
                     <p className="text-sm font-medium">{appointment.appointment_type.replaceAll("_", " ")}</p>
                     <StatusBadge status={appointment.status} />
                   </div>
-                  <p className="text-sm text-muted-foreground">{formatDateTime(appointment.scheduled_at)}</p>
+                  <p className="text-sm text-foreground/70">{formatDateTime(appointment.scheduled_at)}</p>
                 </div>
               ))
             ) : (
@@ -156,7 +168,7 @@ export default async function DonorDashboardPage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-primary/15">
         <CardHeader>
           <CardTitle>Recent alerts</CardTitle>
           <CardDescription>Respond quickly so staff can coordinate supply.</CardDescription>
@@ -178,6 +190,17 @@ export default async function DonorDashboardPage() {
           <Button asChild variant="outline" className="w-full">
             <Link href="/donor/alerts">Open alerts</Link>
           </Button>
+          <Separator />
+          <div className="grid gap-2 text-xs text-muted-foreground md:grid-cols-2">
+            <p className="inline-flex items-center gap-1">
+              <CalendarClock className="h-3.5 w-3.5 text-primary" />
+              Next date guidance shown automatically
+            </p>
+            <p className="inline-flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+              Keep profile details current for outreach
+            </p>
+          </div>
         </CardContent>
       </Card>
     </>

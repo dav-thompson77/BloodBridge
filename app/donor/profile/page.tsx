@@ -18,7 +18,7 @@ export default async function DonorProfilePage() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-      <Card>
+      <Card className="border-primary/15">
         <CardHeader>
           <CardTitle>Donor profile</CardTitle>
           <CardDescription>
@@ -54,7 +54,7 @@ export default async function DonorProfilePage() {
                 id="blood_type"
                 name="blood_type"
                 defaultValue={donorProfile?.blood_type ?? ""}
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">Unknown</option>
                 {BLOOD_TYPES.map((bloodType) => (
@@ -89,7 +89,7 @@ export default async function DonorProfilePage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-primary/15">
         <CardHeader>
           <CardTitle>Eligibility snapshot</CardTitle>
           <CardDescription>This status is set by staff after screening and interview.</CardDescription>

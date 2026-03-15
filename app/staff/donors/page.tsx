@@ -138,7 +138,7 @@ export default async function StaffDonorsPage({
                 id="blood_type"
                 name="blood_type"
                 defaultValue={filters.blood_type ?? ""}
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">All</option>
                 {BLOOD_TYPES.map((bloodType) => (
@@ -154,7 +154,7 @@ export default async function StaffDonorsPage({
                 id="status"
                 name="status"
                 defaultValue={filters.status ?? ""}
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">All</option>
                 <option value="pending_verification">pending_verification</option>
@@ -182,7 +182,7 @@ export default async function StaffDonorsPage({
                 id="response_status"
                 name="response_status"
                 defaultValue={filters.response_status ?? ""}
-                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
               >
                 <option value="">All</option>
                 <option value="interested">interested</option>
@@ -267,7 +267,7 @@ export default async function StaffDonorsPage({
                         id={`approval-${donor.profile_id}`}
                         name="approval_outcome"
                         defaultValue={steps?.approval_outcome ?? donor.status}
-                        className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
                       >
                         <option value="pending_verification">pending_verification</option>
                         <option value="approved">approved</option>

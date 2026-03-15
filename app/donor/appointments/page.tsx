@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/utils";
 
@@ -53,7 +61,7 @@ export default async function DonorAppointmentsPage() {
                   id="centre_id"
                   name="centre_id"
                   required
-                  className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
                 >
                   <option value="">Select a centre</option>
                   {centres.map((centre) => (
@@ -69,7 +77,7 @@ export default async function DonorAppointmentsPage() {
                   id="appointment_type"
                   name="appointment_type"
                   required
-                  className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm"
                 >
                   <option value="blood_typing">Blood typing</option>
                   <option value="screening">Screening</option>
@@ -98,30 +106,30 @@ export default async function DonorAppointmentsPage() {
           </CardHeader>
           <CardContent>
             {appointments.length ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="py-2">Type</th>
-                      <th className="py-2">Centre</th>
-                      <th className="py-2">Date</th>
-                      <th className="py-2">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {appointments.map((appointment) => (
-                      <tr key={appointment.id} className="border-b">
-                        <td className="py-2 capitalize">{appointment.appointment_type.replaceAll("_", " ")}</td>
-                        <td className="py-2">{centreNameFromJoin(appointment.blood_centres)}</td>
-                        <td className="py-2">{formatDateTime(appointment.scheduled_at)}</td>
-                        <td className="py-2">
-                          <StatusBadge status={appointment.status} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Centre</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {appointments.map((appointment) => (
+                    <TableRow key={appointment.id}>
+                      <TableCell className="capitalize">
+                        {appointment.appointment_type.replaceAll("_", " ")}
+                      </TableCell>
+                      <TableCell>{centreNameFromJoin(appointment.blood_centres)}</TableCell>
+                      <TableCell>{formatDateTime(appointment.scheduled_at)}</TableCell>
+                      <TableCell>
+                        <StatusBadge status={appointment.status} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             ) : (
               <p className="text-sm text-muted-foreground">No appointments yet.</p>
             )}
