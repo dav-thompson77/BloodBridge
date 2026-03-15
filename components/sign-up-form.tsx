@@ -30,13 +30,6 @@ export function SignUpForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const callbackUrlHost = (() => {
-    try {
-      return new URL(getBrowserAuthCallbackUrl()).host;
-    } catch {
-      return "your configured app URL";
-    }
-  })();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,10 +143,6 @@ export function SignUpForm({
                 Login
               </Link>
             </div>
-            <p className="mt-3 text-center text-xs text-muted-foreground">
-              Confirmation links return to:{" "}
-              <span className="font-medium">{callbackUrlHost}</span>
-            </p>
           </form>
         </CardContent>
       </Card>

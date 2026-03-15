@@ -1,14 +1,21 @@
 import { respondToAlertAction } from "@/app/actions/donor";
 import { RealtimeRefresher } from "@/components/realtime/realtime-refresher";
 import { StatusBadge } from "@/components/status-badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/utils";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
-export default async function DonorAlertsPage() {
+export default async function DonorAlertsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; error?: string; alert?: string }>;
+}) {
+  const params = await searchParams;
   const { supabase, profile } = await requireRole(["donor", "admin"]);
 
   const [alertsResult, responsesResult] = await Promise.all([
@@ -34,6 +41,24 @@ export default async function DonorAlertsPage() {
     <>
       <RealtimeRefresher donorProfileId={profile.id} />
 
+      {params.saved === "1" ? (
+        <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200">
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertTitle>Response saved</AlertTitle>
+          <AlertDescription>
+            Your alert response was updated and shared with blood bank staff.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {params.error ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Could not save response</AlertTitle>
+          <AlertDescription>{params.error}</AlertDescription>
+        </Alert>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Real-time alerts</CardTitle>
@@ -58,24 +83,57 @@ export default async function DonorAlertsPage() {
                     Sent {formatDateTime(alert.created_at)} | Need:{" "}
                     {request?.blood_type_needed ?? "Any"} | Urgency: {request?.urgency ?? "unknown"}
                   </p>
+                  {response?.responded_at ? (
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      Last updated {formatDateTime(response.responded_at)}
+                    </p>
+                  ) : null}
 
-                  <form action={respondToAlertAction} className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                  <form action={respondToAlertAction} className="space-y-3">
                     <input type="hidden" name="alert_id" value={alert.id} />
                     <div className="space-y-2">
-                      <Label htmlFor={`response-${alert.id}`}>Your response</Label>
-                      <select
-                        id={`response-${alert.id}`}
-                        name="response_status"
-                        defaultValue={response?.response_status ?? "pending"}
-                        className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="interested">Interested</option>
-                        <option value="booked">Booked</option>
-                        <option value="unavailable">Unavailable</option>
-                      </select>
+                      <Label>Your response</Label>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <label className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="response_status"
+                            value="interested"
+                            defaultChecked={(response?.response_status ?? "pending") === "interested"}
+                            required
+                            className="peer sr-only"
+                          />
+                          <span className="flex h-10 items-center justify-center rounded-md border border-input text-sm transition-colors peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary">
+                            Interested
+                          </span>
+                        </label>
+                        <label className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="response_status"
+                            value="booked"
+                            defaultChecked={(response?.response_status ?? "pending") === "booked"}
+                            className="peer sr-only"
+                          />
+                          <span className="flex h-10 items-center justify-center rounded-md border border-input text-sm transition-colors peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary">
+                            Booked
+                          </span>
+                        </label>
+                        <label className="cursor-pointer">
+                          <input
+                            type="radio"
+                            name="response_status"
+                            value="unavailable"
+                            defaultChecked={(response?.response_status ?? "pending") === "unavailable"}
+                            className="peer sr-only"
+                          />
+                          <span className="flex h-10 items-center justify-center rounded-md border border-input text-sm transition-colors peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary">
+                            Unavailable
+                          </span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-w-lg">
                       <Label htmlFor={`note-${alert.id}`}>Note (optional)</Label>
                       <Input
                         id={`note-${alert.id}`}
@@ -84,8 +142,8 @@ export default async function DonorAlertsPage() {
                         placeholder="Add availability note"
                       />
                     </div>
-                    <div className="flex items-end">
-                      <Button type="submit">Save</Button>
+                    <div className="flex items-center justify-end">
+                      <Button type="submit">Save response</Button>
                     </div>
                   </form>
                 </div>

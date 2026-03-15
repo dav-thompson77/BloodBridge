@@ -44,7 +44,7 @@ export function AppShell({
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
           <div>
             <Link
-              href="/"
+              href="/?from=dashboard"
               className="text-xs font-semibold uppercase tracking-wider text-primary"
             >
               Blood Bridge

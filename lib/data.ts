@@ -7,6 +7,81 @@ interface DonorFilterInput {
   parish?: string;
 }
 
+export interface CenterOption {
+  id: number;
+  name: string;
+  parish: string;
+  address: string | null;
+  phone: string | null;
+  is_active: boolean;
+}
+
+export const DEFAULT_CENTER_SEED: Array<
+  Omit<CenterOption, "id" | "is_active"> & { id?: number; is_active?: boolean }
+> = [
+  {
+    id: 1,
+    name: "National Blood Transfusion Service",
+    parish: "Kingston",
+    address: "21 Slipe Pen Road, Kingston",
+    phone: "+1-876-555-3001",
+    is_active: true,
+  },
+  {
+    id: 2,
+    name: "National Chest Hospital / Kiwanis Blood Collection Centre",
+    parish: "Kingston",
+    address: "36 Barbican Road, Kingston 6",
+    phone: "+1-876-555-3005",
+    is_active: true,
+  },
+  {
+    id: 3,
+    name: "St. Ann's Bay Hospital",
+    parish: "St. Ann",
+    address: "15 St. Ann's Bay Main Road, St. Ann's Bay",
+    phone: "+1-876-555-3002",
+    is_active: true,
+  },
+  {
+    id: 4,
+    name: "Savanna-la-Mar Hospital",
+    parish: "Westmoreland",
+    address: "6 Beckford Street, Savanna-la-Mar",
+    phone: "+1-876-555-3003",
+    is_active: true,
+  },
+  {
+    id: 5,
+    name: "Port Antonio Hospital",
+    parish: "Portland",
+    address: "West Street, Port Antonio",
+    phone: "+1-876-555-3004",
+    is_active: true,
+  },
+];
+
+async function queryCenterOptions(supabase: SupabaseClient): Promise<CenterOption[]> {
+  const { data, error } = await supabase
+    .from("blood_centers")
+    .select("id, name, parish, address, phone, is_active")
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).filter((center) => center.is_active !== false);
+}
+
+async function trySeedCentersViaRpc(supabase: SupabaseClient) {
+  const { error } = await supabase.rpc("ensure_demo_blood_centers");
+  // The RPC may not exist yet if migrations were not applied.
+  if (error && !error.message.toLowerCase().includes("ensure_demo_blood_centers")) {
+    throw error;
+  }
+}
+
 export async function getDonorDashboardData(
   supabase: SupabaseClient,
   profileId: string,
@@ -61,15 +136,22 @@ export async function getDonorDashboardData(
 }
 
 export async function getBloodCentres(supabase: SupabaseClient) {
-  const { data, error } = await supabase
-    .from("blood_centers")
-    .select("*")
-    .eq("is_active", true)
-    .order("name", { ascending: true });
-  if (error) {
-    throw error;
+  let centers = await queryCenterOptions(supabase);
+  if (centers.length) {
+    return centers;
   }
-  return data ?? [];
+
+  try {
+    await trySeedCentersViaRpc(supabase);
+    centers = await queryCenterOptions(supabase);
+    if (centers.length) {
+      return centers;
+    }
+  } catch {
+    // Swallow and return empty list if the RPC is unavailable.
+  }
+
+  return [];
 }
 
 export async function getStaffDashboardData(supabase: SupabaseClient) {

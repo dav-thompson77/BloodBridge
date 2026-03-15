@@ -57,20 +57,6 @@ export async function updateDonorProfileAction(formData: FormData) {
       throw donorProfileError;
     }
 
-    const { error: stepsError } = await supabase
-      .from("donor_verification_steps")
-      .upsert(
-        {
-          donor_profile_id: profile.id,
-          registered: true,
-          approval_outcome: "pending_verification",
-        },
-        { onConflict: "donor_profile_id" },
-      );
-
-    if (stepsError) {
-      throw stepsError;
-    }
   } catch (error) {
     const message =
       error instanceof Error
@@ -118,10 +104,10 @@ export async function respondToAlertAction(formData: FormData) {
   const note = String(formData.get("note") ?? "").trim();
 
   if (!Number.isFinite(alertId) || !RESPONSE_STATUSES.includes(response as AlertResponseStatus)) {
-    return;
+    redirect("/donor/alerts?error=Invalid%20alert%20response");
   }
 
-  await supabase
+  const { error: responseError } = await supabase
     .from("donor_alert_responses")
     .upsert(
       {
@@ -134,19 +120,28 @@ export async function respondToAlertAction(formData: FormData) {
       { onConflict: "alert_id,donor_profile_id" },
     );
 
+  if (responseError) {
+    redirect(`/donor/alerts?error=${encodeURIComponent(responseError.message)}`);
+  }
+
   if (response === "booked") {
-    await supabase.from("notifications").insert({
+    const { error: notificationError } = await supabase.from("notifications").insert({
       recipient_profile_id: profile.id,
       source_type: "alert_response",
       source_id: alertId,
       title: "Response received",
       body: "Your booked response was submitted. Staff will confirm your slot.",
     });
+    if (notificationError) {
+      redirect(`/donor/alerts?error=${encodeURIComponent(notificationError.message)}`);
+    }
   }
 
   revalidatePath("/donor");
   revalidatePath("/donor/alerts");
+  revalidatePath("/staff");
   revalidatePath("/staff/alerts");
+  redirect(`/donor/alerts?saved=1&alert=${alertId}`);
 }
 
 export async function updateDonorAvailabilityAction(formData: FormData) {

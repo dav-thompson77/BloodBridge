@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { requireRole } from "@/lib/auth";
+import { getBloodCentres } from "@/lib/data";
 import { formatDateTime } from "@/lib/utils";
 
 function getProfileName(
@@ -47,7 +48,7 @@ export default async function StaffAppointmentsPage() {
       .select("profile_id, blood_type, profiles!inner(full_name)")
       .order("updated_at", { ascending: false })
       .limit(100),
-    supabase.from("blood_centers").select("id, name").eq("is_active", true).order("name"),
+    getBloodCentres(supabase),
     supabase
       .from("blood_requests")
       .select("id, blood_type_needed, urgency, status")
@@ -62,9 +63,10 @@ export default async function StaffAppointmentsPage() {
   ]);
 
   const donors = donorsResult.data ?? [];
-  const centres = centresResult.data ?? [];
+  const centres = centresResult;
   const requests = requestsResult.data ?? [];
   const appointments = appointmentsResult.data ?? [];
+  const hasCentres = centres.length > 0;
 
   return (
     <div className="space-y-6">
@@ -102,10 +104,15 @@ export default async function StaffAppointmentsPage() {
                 <option value="">Select centre</option>
                 {centres.map((centre) => (
                   <option key={centre.id} value={centre.id}>
-                    {centre.name}
+                    {centre.name} ({centre.parish})
                   </option>
                 ))}
               </select>
+              {!hasCentres ? (
+                <p className="text-xs text-destructive">
+                  No active donation centres found. Seed centres in Supabase to continue.
+                </p>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="blood_request_id">Link to request (optional)</Label>
@@ -143,7 +150,7 @@ export default async function StaffAppointmentsPage() {
               <Label htmlFor="notes">Notes</Label>
               <Input id="notes" name="notes" placeholder="Pre-appointment notes" />
             </div>
-            <Button type="submit" className="md:col-span-2">
+            <Button type="submit" className="md:col-span-2" disabled={!hasCentres}>
               Create appointment
             </Button>
           </form>

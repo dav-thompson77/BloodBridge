@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { requireRole } from "@/lib/auth";
+import { getBloodCentres } from "@/lib/data";
 import { BLOOD_TYPES } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { Sparkles, Wand2 } from "lucide-react";
@@ -30,15 +31,16 @@ export default async function StaffBloodRequestsPage() {
   const { supabase } = await requireRole(["blood_bank_staff", "admin"]);
 
   const [centresResult, requestsResult] = await Promise.all([
-    supabase.from("blood_centers").select("id, name, parish").eq("is_active", true).order("name"),
+    getBloodCentres(supabase),
     supabase
       .from("blood_requests")
       .select("id, blood_type_needed, urgency, required_by, note, status, ai_message_suggestions, blood_centers(name)")
       .order("created_at", { ascending: false }),
   ]);
 
-  const centres = centresResult.data ?? [];
+  const centres = centresResult;
   const requests = requestsResult.data ?? [];
+  const hasCentres = centres.length > 0;
 
   return (
     <div className="space-y-6">
@@ -106,6 +108,11 @@ export default async function StaffBloodRequestsPage() {
                   </option>
                 ))}
               </select>
+              {!hasCentres ? (
+                <p className="text-xs text-destructive">
+                  No active donation centres found. Seed centres in Supabase to create requests.
+                </p>
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="required_by">Required by date</Label>
@@ -119,7 +126,7 @@ export default async function StaffBloodRequestsPage() {
                 placeholder="Context for donor outreach and hospital request details"
               />
             </div>
-            <Button type="submit" className="md:col-span-2">
+            <Button type="submit" className="md:col-span-2" disabled={!hasCentres}>
               <Sparkles className="h-4 w-4" />
               Create request + generate outreach copy
             </Button>
@@ -168,6 +175,11 @@ export default async function StaffBloodRequestsPage() {
                     <AiSuggestionList
                       requestId={request.id}
                       suggestions={request.ai_message_suggestions as string[]}
+                      bloodType={request.blood_type_needed}
+                      urgency={request.urgency as "low" | "medium" | "high" | "critical"}
+                      requiredBy={request.required_by}
+                      centreName={centreNameFromJoin(request.blood_centers)}
+                      messageContext={request.note}
                     />
                   ) : (
                     <p className="text-sm text-muted-foreground">No suggestions stored.</p>

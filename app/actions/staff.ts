@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
-import { generateOutreachSuggestions } from "@/lib/ai/outreach";
+import { generateOpenRouterOutreachSuggestions } from "@/lib/ai/openrouter";
 import type { AppointmentStatus, AppointmentType, DonorStatus, UrgencyLevel } from "@/lib/types";
 
 const APPOINTMENT_TYPES: AppointmentType[] = ["blood_typing", "screening", "donation"];
@@ -50,28 +50,18 @@ export async function createBloodRequestAction(formData: FormData) {
     .limit(1)
     .maybeSingle();
 
-  const suggestions = sampleDonor
-    ? generateOutreachSuggestions({
-        donorName:
-          (sampleDonor.profiles as { full_name?: string } | null)?.full_name ?? "donor",
-        bloodType: bloodTypeNeeded,
-        urgency: urgency as UrgencyLevel,
-        requiredBy,
-        donorStatus: sampleDonor.status,
-        lastDonationDate: sampleDonor.last_donation_date,
-        centreName: centre?.name ?? "the donation centre",
-        customNote: note,
-      })
-    : generateOutreachSuggestions({
-        donorName: "donor",
-        bloodType: bloodTypeNeeded,
-        urgency: urgency as UrgencyLevel,
-        requiredBy,
-        donorStatus: "approved",
-        lastDonationDate: null,
-        centreName: centre?.name ?? "the donation centre",
-        customNote: note,
-      });
+  const outreachResult = await generateOpenRouterOutreachSuggestions({
+    donorName:
+      (sampleDonor?.profiles as { full_name?: string } | null)?.full_name ?? "donor",
+    bloodType: bloodTypeNeeded,
+    urgency: urgency as UrgencyLevel,
+    requiredBy,
+    approvalStatus: sampleDonor?.status ?? "approved",
+    centreName: centre?.name ?? "the donation centre",
+    messageContext: note,
+  });
+
+  const suggestions = outreachResult.suggestions;
 
   await supabase.from("blood_requests").insert({
     created_by_profile_id: profile.id,

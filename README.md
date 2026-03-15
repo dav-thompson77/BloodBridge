@@ -69,7 +69,9 @@ It helps blood bank teams find, verify, schedule, and re-engage eligible donors 
 
 ### AI-assisted outreach (demo-safe)
 
-- Rule-based server utility that generates outreach message suggestions from:
+- OpenRouter-backed server route (`POST /api/ai/outreach`) generates outreach variants using server-side secrets.
+- If OpenRouter is unavailable, the app automatically falls back to rule-based templates.
+- Suggestions are generated from:
   - blood type
   - urgency
   - donor approval status
@@ -184,6 +186,9 @@ cp .env.example .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://znmzisdzzkifinjlylco.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_DAj5lxE9Td4QQBS6As_h_w_5riUAxc7
 NEXT_PUBLIC_SITE_URL=https://your-vercel-domain.vercel.app
+OPENROUTER_API_KEY=your_openrouter_api_key
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_MODEL=openai/gpt-4o-mini
 ```
 
 4. Apply SQL:
@@ -231,11 +236,15 @@ where email = 'admin-user@example.com';
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    - `NEXT_PUBLIC_SITE_URL` (your Vercel production URL)
+   - `OPENROUTER_API_KEY` (server-side secret)
+   - `OPENROUTER_BASE_URL` (optional, defaults to OpenRouter API)
+   - `OPENROUTER_MODEL` (optional, defaults to `openai/gpt-4o-mini`)
 3. Deploy.
 4. Ensure the Supabase migration + seed SQL has been run in the connected Supabase project.
 5. In Supabase Auth settings, confirm Site URL + Redirect URLs include:
    - `https://your-vercel-domain.vercel.app/auth/callback`
    - `https://your-vercel-domain.vercel.app/dashboard`
+6. Add the OpenRouter key to your local env, Vercel env, and any CI secret store used for deployments.
 
 ---
 

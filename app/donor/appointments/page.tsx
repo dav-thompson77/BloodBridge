@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireRole } from "@/lib/auth";
+import { getBloodCentres } from "@/lib/data";
 import { formatDateTime } from "@/lib/utils";
 
 function centreNameFromJoin(
@@ -32,7 +33,7 @@ export default async function DonorAppointmentsPage() {
   const { supabase, profile } = await requireRole(["donor", "admin"]);
 
   const [centresResult, appointmentsResult] = await Promise.all([
-    supabase.from("blood_centers").select("id, name, parish").eq("is_active", true).order("name"),
+    getBloodCentres(supabase),
     supabase
       .from("appointments")
       .select("id, appointment_type, status, scheduled_at, notes, blood_centers(name, parish)")
@@ -40,8 +41,9 @@ export default async function DonorAppointmentsPage() {
       .order("scheduled_at", { ascending: true }),
   ]);
 
-  const centres = centresResult.data ?? [];
+  const centres = centresResult;
   const appointments = appointmentsResult.data ?? [];
+  const hasCentres = centres.length > 0;
 
   return (
     <>
@@ -70,6 +72,11 @@ export default async function DonorAppointmentsPage() {
                     </option>
                   ))}
                 </select>
+                {!hasCentres ? (
+                  <p className="text-xs text-destructive">
+                    No active donation centres found. Please ask staff to seed centres in Supabase.
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="appointment_type">Appointment type</Label>
@@ -92,7 +99,7 @@ export default async function DonorAppointmentsPage() {
                 <Label htmlFor="notes">Notes (optional)</Label>
                 <Input id="notes" name="notes" placeholder="Availability details" />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={!hasCentres}>
                 Book appointment
               </Button>
             </form>
