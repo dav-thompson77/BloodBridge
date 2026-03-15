@@ -4,11 +4,21 @@ Blood Bridge is a real-time donor coordination platform built to help blood bank
 
 ## Tech stack used
 
-- **Next.js** (frontend + server actions)
-- **Supabase** (Postgres, Auth, Realtime, RLS)
-- **Vercel** (deployment)
-- **Twilio** (SMS/notifications)
-- **Cursor/Claude/Chatgpt** (AI-assistants)
+- **Next.js (App Router + TypeScript)** for frontend UI, server rendering, and server actions
+- **Supabase** for Postgres database, authentication, realtime subscriptions, and RLS
+- **Vercel** for deployment and preview environments
+- **OpenRouter** for AI-assisted outreach message generation (with local fallback logic)
+- **Twilio** for outbound SMS alerts and delivery callbacks
+- **shadcn/ui + Tailwind CSS** for consistent UI components and styling
+
+## Functionality overview
+
+Blood Bridge is designed around two primary users: donors and blood bank staff.
+
+- **Donor workflow:** register -> complete profile -> track eligibility -> receive alerts -> respond -> book appointments -> view donation history
+- **Staff workflow:** create blood requests -> identify matching donors -> send alerts -> track responses in realtime -> manage appointments
+- **Realtime coordination:** donor alerts, responses, and appointment updates sync across dashboards
+- **Operational safety:** the platform supports scheduling/coordination while clinical teams retain final eligibility authority
 
 
 ## Problem, Impact & Solution
