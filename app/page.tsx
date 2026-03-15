@@ -231,7 +231,7 @@ export default async function Home({
             </Alert>
             <div className="overflow-hidden rounded-lg border bg-background">
               <Image
-                src="/images/clinical-safety-hospital.svg"
+                src="/images/blood-donation.jpg"
                 alt="Blood Bridge clinical safety coordination illustration"
                 width={1200}
                 height={700}
@@ -239,8 +239,9 @@ export default async function Home({
                 priority
               />
               <p className="border-t px-3 py-2 text-xs text-muted-foreground">
-                Coordination support for hospital teams across donor screening,
-                approval, and donation scheduling.
+                Blood Bridge supports safer donor coordination by 
+                helping blood services manage screening, approval, 
+                and appointment readiness in one place.
               </p>
             </div>
           </CardContent>
