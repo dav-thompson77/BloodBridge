@@ -23,6 +23,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -104,7 +105,7 @@ export default async function Home() {
             Real-time donor coordination
           </Badge>
           <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-            Hospital-ready donor coordination for Jamaican blood services.
+            Help blood banks find and re-engage eligible donors in real time.
           </h1>
           <p className="text-lg leading-relaxed text-foreground/80">
             Blood Bridge helps blood services register, verify, schedule, and
@@ -169,6 +170,27 @@ export default async function Home() {
                 eligibility decisions remain with qualified clinical teams.
               </AlertDescription>
             </Alert>
+            <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-muted/20">
+              <div className="relative aspect-[16/10] w-full">
+              <Image
+              src="/images/blood-bridge-hero.jpg"
+              alt="Healthcare staff coordinating blood donation and donor outreach"
+              fill
+              className="object-cover"
+              priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
+            </div>
+
+            <div className="absolute bottom-3 left-3 right-3 rounded-lg border border-primary/20 bg-background/85 p-3 backdrop-blur-sm">
+            <p className="text-sm font-semibold text-foreground">
+              Real-time blood service coordination
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Donor verification, urgent requests, and appointment scheduling in one platform.
+            </p>
+            </div>
+          </div>
           </CardContent>
         </Card>
       </section>
