@@ -469,9 +469,9 @@ export default async function Home({
       <section className="mx-auto w-full max-w-6xl px-4 pb-8 md:px-6">
         <Card className="motion-fade-up hover-pop border-primary/20">
           <CardHeader>
-            <CardTitle>Live demo feed</CardTitle>
+            <CardTitle>Live feed</CardTitle>
             <CardDescription>
-              Current coordination updates for judges and demo observers.
+              Current coordination updates.
             </CardDescription>
           </CardHeader>
           <CardContent>
