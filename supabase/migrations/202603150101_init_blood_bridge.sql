@@ -158,6 +158,40 @@ create table if not exists public.notifications (
   created_at timestamptz not null default now()
 );
 
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'appointments'
+  ) then
+    alter publication supabase_realtime add table public.appointments;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'donor_alerts'
+  ) then
+    alter publication supabase_realtime add table public.donor_alerts;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'donor_alert_responses'
+  ) then
+    alter publication supabase_realtime add table public.donor_alert_responses;
+  end if;
+end
+$$;
+
 create index if not exists profiles_role_parish_idx on public.profiles (role, parish);
 create index if not exists profiles_auth_user_id_idx on public.profiles (auth_user_id);
 create index if not exists donor_profiles_status_blood_type_idx on public.donor_profiles (status, blood_type);
