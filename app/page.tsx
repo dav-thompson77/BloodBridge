@@ -18,7 +18,6 @@ import {
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { StatusBadge } from "@/components/status-badge";
 import { AuthHomeRedirect } from "@/components/auth-home-redirect";
-import { ensureProfileForUser, getRoleHomePath } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/utils";
 import {
@@ -62,18 +61,6 @@ export default async function Home({
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    try {
-      const profile = await ensureProfileForUser(supabase, user);
-      redirect(getRoleHomePath(profile.role));
-    } catch {
-      redirect("/onboarding");
-    }
-  }
 
   const [
     centresCountResult,
