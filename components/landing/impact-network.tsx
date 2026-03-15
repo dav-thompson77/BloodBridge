@@ -41,39 +41,37 @@ export function ImpactNetwork() {
   return (
     <div className="rounded-xl border-2 border-primary/30 bg-background p-3 shadow-lg shadow-primary/10">
       <div className="impact-network-scene rounded-lg border bg-gradient-to-b from-background via-accent/20 to-background">
-        <div className="impact-network-flight">
-          <div className="impact-network-tilt">
-            <div className="impact-network-rotator">
-              {ORBITS.map((orbit) => (
-                <div key={orbit.className} className={`impact-orbit ${orbit.className}`}>
-                  <div className="impact-ring" />
-                  {NODE_ANGLES.map((angle, index) => (
-                    <div key={`${orbit.className}-${angle}`}>
-                      <span
-                        className={`impact-link ${orbit.linkClass}`}
-                        style={{
-                          width: `${orbit.radius}px`,
-                          transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-                        }}
-                      />
-                      <span
-                        className={`impact-node ${orbit.nodeClass}`}
-                        style={{
-                          transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(${orbit.radius}px)`,
-                          animationDelay: `calc(${orbit.delay} + ${index * 80}ms)`,
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ))}
-              <div className="impact-core">
-                <span className="impact-core-axis impact-core-axis-x" />
-                <span className="impact-core-axis impact-core-axis-y" />
-                <span className="impact-core-ring" />
-                <span className="impact-core-dot" />
-                <span className="impact-core-pulse" />
+        <div className="impact-network-tilt">
+          <div className="impact-network-rotator">
+            {ORBITS.map((orbit) => (
+              <div key={orbit.className} className={`impact-orbit ${orbit.className}`}>
+                <div className="impact-ring" />
+                {NODE_ANGLES.map((angle, index) => (
+                  <div key={`${orbit.className}-${angle}`}>
+                    <span
+                      className={`impact-link ${orbit.linkClass}`}
+                      style={{
+                        width: `${orbit.radius}px`,
+                        transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+                      }}
+                    />
+                    <span
+                      className={`impact-node ${orbit.nodeClass}`}
+                      style={{
+                        transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(${orbit.radius}px)`,
+                        animationDelay: `calc(${orbit.delay} + ${index * 80}ms)`,
+                      }}
+                    />
+                  </div>
+                ))}
               </div>
+            ))}
+            <div className="impact-core">
+              <span className="impact-core-axis impact-core-axis-x" />
+              <span className="impact-core-axis impact-core-axis-y" />
+              <span className="impact-core-ring" />
+              <span className="impact-core-dot" />
+              <span className="impact-core-pulse" />
             </div>
           </div>
         </div>
