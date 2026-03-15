@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { generateOutreachSuggestions } from "@/lib/ai/outreach";
-import { runAIMonitor } from "@/lib/ai/monitor";
 import { redirect } from "next/navigation";
 import { BLOOD_TYPES, type AppointmentStatus, type AppointmentType, type DonorStatus, type UrgencyLevel } from "@/lib/types";
 
@@ -94,31 +93,16 @@ export async function createBloodRequestAction(formData: FormData) {
         customNote: note,
       });
 
-  const { data: createdRequest } = await supabase
-    .from("blood_requests")
-    .insert({
-      created_by_profile_id: profile.id,
-      blood_type_needed: bloodTypeNeeded,
-      urgency,
-      center_id: centreId,
-      required_by: requiredBy,
-      note: note || null,
-      ai_message_suggestions: suggestions,
-      status: "active",
-    })
-    .select("id")
-    .single();
-
-  if (createdRequest?.id && urgency === "critical") {
-    // Auto-run monitor when a new critical request is created.
-    await runAIMonitor(supabase, {
-      sentByProfileId: profile.id,
-      requestId: createdRequest.id,
-    });
-    revalidatePath("/staff/monitor");
-    revalidatePath("/staff/alerts");
-    revalidatePath("/donor/alerts");
-  }
+  await supabase.from("blood_requests").insert({
+    created_by_profile_id: profile.id,
+    blood_type_needed: bloodTypeNeeded,
+    urgency,
+    center_id: centreId,
+    required_by: requiredBy,
+    note: note || null,
+    ai_message_suggestions: suggestions,
+    status: "active",
+  });
 
   revalidatePath("/staff");
   revalidatePath("/staff/requests");
