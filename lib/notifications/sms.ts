@@ -49,12 +49,22 @@ export async function sendSmsMessage(payload: SmsPayload): Promise<SmsSendResult
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const fromNumber = process.env.TWILIO_FROM_NUMBER;
   const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+  const statusCallbackUrl = process.env.TWILIO_STATUS_CALLBACK_URL;
+  const normalizedFrom = fromNumber ? normalizeToE164(fromNumber) : null;
 
-  if (!accountSid || !authToken || (!fromNumber && !messagingServiceSid)) {
+  if (!accountSid || !authToken || (!normalizedFrom && !messagingServiceSid)) {
     return {
       ok: false,
       error:
         "SMS credentials missing (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN and TWILIO_FROM_NUMBER or TWILIO_MESSAGING_SERVICE_SID).",
+    };
+  }
+
+  if (fromNumber && !normalizedFrom && !messagingServiceSid) {
+    return {
+      ok: false,
+      error:
+        "TWILIO_FROM_NUMBER is not valid E.164 format. Use a number like +17712521684.",
     };
   }
 
@@ -71,8 +81,11 @@ export async function sendSmsMessage(payload: SmsPayload): Promise<SmsSendResult
     const body = new URLSearchParams({ To: normalizedTo, Body: payload.body });
     if (messagingServiceSid) {
       body.set("MessagingServiceSid", messagingServiceSid);
-    } else if (fromNumber) {
-      body.set("From", fromNumber);
+    } else if (normalizedFrom) {
+      body.set("From", normalizedFrom);
+    }
+    if (statusCallbackUrl) {
+      body.set("StatusCallback", statusCallbackUrl);
     }
 
     const response = await fetch(
