@@ -72,7 +72,13 @@ export async function updateSession(request: NextRequest) {
     .eq("auth_user_id", userId)
     .maybeSingle();
 
-  const role = profile?.role ?? "donor";
+  const role = profile?.role;
+
+  if (!role && pathname !== "/onboarding") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/onboarding";
+    return NextResponse.redirect(url);
+  }
 
   if (pathname.startsWith("/admin") && role !== "admin") {
     const url = request.nextUrl.clone();
