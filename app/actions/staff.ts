@@ -24,18 +24,30 @@ const URGENCY_LEVELS: UrgencyLevel[] = ["low", "medium", "high", "critical"];
 
 function getNameAndPhoneFromJoin(
   profileJoin:
-    | { full_name: string | null; phone: string | null }
-    | Array<{ full_name: string | null; phone: string | null }>
+    | {
+        full_name: string | null;
+        phone: string | null;
+        email?: string | null;
+        auth_user_id?: string | null;
+      }
+    | Array<{
+        full_name: string | null;
+        phone: string | null;
+        email?: string | null;
+        auth_user_id?: string | null;
+      }>
     | null
     | undefined,
 ) {
   if (!profileJoin) {
-    return { fullName: "Donor", phone: null };
+    return { fullName: "Donor", phone: null, email: null, authUserId: null };
   }
   const row = Array.isArray(profileJoin) ? profileJoin[0] : profileJoin;
   return {
     fullName: row?.full_name?.trim() || "Donor",
     phone: row?.phone ?? null,
+    email: row?.email ?? null,
+    authUserId: row?.auth_user_id ?? null,
   };
 }
 
@@ -45,6 +57,11 @@ function makePersonalizedOutreachMessage(baseSuggestion: string, donorName: stri
     return cleaned;
   }
   return `Hello ${donorName}, ${cleaned}`;
+}
+
+function isLikelyDemoPhone(value: string) {
+  const digits = value.replace(/[^\d]/g, "");
+  return digits.includes("555");
 }
 
 export async function createBloodRequestAction(formData: FormData) {
@@ -115,10 +132,32 @@ export async function createBloodRequestAction(formData: FormData) {
 
   const { data: matchedDonors } = await supabase
     .from("donor_profiles")
-    .select("profile_id, status, profiles!inner(full_name, phone)")
+    .select("profile_id, status, profiles!inner(full_name, phone, email, auth_user_id)")
     .eq("blood_type", bloodTypeNeeded)
-    .in("status", ["approved", "eligible_again"])
+    .in("status", [
+      "approved",
+      "eligible_again",
+      "pending_verification",
+      "temporarily_deferred",
+    ])
     .limit(100);
+
+  let donorsForDispatch = matchedDonors ?? [];
+
+  if (!donorsForDispatch.length) {
+    const { data: fallbackDonors } = await supabase
+      .from("donor_profiles")
+      .select("profile_id, status, profiles!inner(full_name, phone, email, auth_user_id)")
+      .in("status", [
+        "approved",
+        "eligible_again",
+        "pending_verification",
+        "temporarily_deferred",
+      ])
+      .limit(100);
+
+    donorsForDispatch = fallbackDonors ?? [];
+  }
 
   let alertsSent = 0;
   let smsSent = 0;
@@ -126,14 +165,28 @@ export async function createBloodRequestAction(formData: FormData) {
   let smsWarning = "";
   const baseSuggestion = suggestions[0] ?? `${bloodTypeNeeded} donors needed at ${centre?.name ?? "the centre"}.`;
 
-  for (const donor of matchedDonors ?? []) {
+  for (const donor of donorsForDispatch) {
     const recipient = getNameAndPhoneFromJoin(
       donor.profiles as
-        | { full_name: string | null; phone: string | null }
-        | Array<{ full_name: string | null; phone: string | null }>
+        | {
+            full_name: string | null;
+            phone: string | null;
+            email?: string | null;
+            auth_user_id?: string | null;
+          }
+        | Array<{
+            full_name: string | null;
+            phone: string | null;
+            email?: string | null;
+            auth_user_id?: string | null;
+          }>
         | null
         | undefined,
     );
+
+    if (!recipient.authUserId) {
+      continue;
+    }
 
     const personalizedMessage = makePersonalizedOutreachMessage(
       baseSuggestion,
@@ -174,7 +227,7 @@ export async function createBloodRequestAction(formData: FormData) {
       body: personalizedMessage,
     });
 
-    if (recipient.phone) {
+    if (recipient.phone && !isLikelyDemoPhone(recipient.phone)) {
       const smsResult = await sendSmsMessage({
         to: recipient.phone,
         body: personalizedMessage,
@@ -190,7 +243,8 @@ export async function createBloodRequestAction(formData: FormData) {
     } else {
       smsFailed += 1;
       if (!smsWarning) {
-        smsWarning = "Some donors are missing phone numbers, so SMS was skipped.";
+        smsWarning =
+          "Some matched donors have missing/demo phone numbers, so SMS was skipped for those records.";
       }
     }
   }

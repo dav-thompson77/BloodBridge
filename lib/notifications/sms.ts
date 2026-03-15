@@ -1,6 +1,8 @@
 export interface SmsSendResult {
   ok: boolean;
   error?: string;
+  messageSid?: string;
+  status?: string;
 }
 
 interface SmsPayload {
@@ -99,7 +101,16 @@ export async function sendSmsMessage(payload: SmsPayload): Promise<SmsSendResult
       };
     }
 
-    return { ok: true };
+    const responsePayload = (await response.json()) as {
+      sid?: string;
+      status?: string;
+    };
+
+    return {
+      ok: true,
+      messageSid: responsePayload.sid,
+      status: responsePayload.status,
+    };
   } catch (error) {
     return {
       ok: false,
