@@ -7,6 +7,9 @@ Blood Bridge is a real-time donor coordination platform built to help blood bank
 - **Next.js** (frontend + server actions)
 - **Supabase** (Postgres, Auth, Realtime, RLS)
 - **Vercel** (deployment)
+- **Twilio** (SMS/notifications)
+- **Cursor/Claude/Chatgpt** (AI-assistants)
+
 
 ## Problem, Impact & Solution
 
