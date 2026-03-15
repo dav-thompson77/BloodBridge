@@ -175,10 +175,10 @@
 
 @keyframes networkRotate {
   0% {
-    transform: rotateX(62deg) rotateY(-180deg) rotateZ(8deg);
+    transform: rotateX(68deg) rotateY(-180deg);
   }
   100% {
-    transform: rotateX(62deg) rotateY(180deg) rotateZ(8deg);
+    transform: rotateX(68deg) rotateY(180deg);
   }
 }
 
@@ -210,7 +210,7 @@
 .impact-network-scene {
   position: relative;
   height: 390px;
-  perspective: 900px;
+  perspective: 1200px;
   overflow: hidden;
 }
 
@@ -218,14 +218,16 @@
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: rotateX(3deg) rotateY(-4deg);
+  transform: rotateX(2deg) rotateY(0deg);
 }
 
 .impact-network-rotator {
   position: absolute;
   inset: 0;
+  z-index: 10;
   transform-style: preserve-3d;
-  animation: networkRotate 17s linear infinite;
+  transform-origin: 50% 50%;
+  animation: networkRotate 13.5s linear infinite;
 }
 
 .impact-orbit {
@@ -241,15 +243,15 @@
 }
 
 .impact-orbit-two {
-  transform: translate(-50%, -50%) rotateY(62deg);
+  transform: translate(-50%, -50%) rotateY(62deg) translateZ(-18px);
 }
 
 .impact-orbit-three {
-  transform: translate(-50%, -50%) rotateX(45deg) rotateY(45deg);
+  transform: translate(-50%, -50%) rotateX(45deg) rotateY(45deg) translateZ(10px);
 }
 
 .impact-orbit-four {
-  transform: translate(-50%, -50%) rotateX(82deg) rotateY(24deg);
+  transform: translate(-50%, -50%) rotateX(82deg) rotateY(24deg) translateZ(-26px);
 }
 
 .impact-ring {
@@ -342,7 +344,20 @@
   position: absolute;
   top: 50%;
   left: 50%;
+  z-index: 30;
   transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.impact-core-mask {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70px;
+  height: 70px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, hsl(var(--background) / 0.88) 0%, hsl(var(--background) / 0.2) 72%, transparent 100%);
+  transform: translate(-50%, -50%) translateZ(12px);
 }
 
 .impact-core-axis {
@@ -351,7 +366,7 @@
   left: 50%;
   border-radius: 9999px;
   background: hsl(var(--primary) / 0.28);
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(14px);
 }
 
 .impact-core-axis-x {
@@ -372,7 +387,7 @@
   height: 24px;
   border-radius: 9999px;
   border: 1.5px solid hsl(var(--primary) / 0.55);
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(16px);
 }
 
 .impact-core-dot {
@@ -382,6 +397,7 @@
   border-radius: 9999px;
   background: hsl(var(--primary));
   box-shadow: 0 0 24px hsl(var(--primary) / 0.45);
+  transform: translateZ(18px);
 }
 
 .impact-core-pulse {

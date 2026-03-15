@@ -66,13 +66,14 @@ export function ImpactNetwork() {
                 ))}
               </div>
             ))}
-            <div className="impact-core">
-              <span className="impact-core-axis impact-core-axis-x" />
-              <span className="impact-core-axis impact-core-axis-y" />
-              <span className="impact-core-ring" />
-              <span className="impact-core-dot" />
-              <span className="impact-core-pulse" />
-            </div>
+          </div>
+          <div className="impact-core">
+            <span className="impact-core-mask" />
+            <span className="impact-core-axis impact-core-axis-x" />
+            <span className="impact-core-axis impact-core-axis-y" />
+            <span className="impact-core-ring" />
+            <span className="impact-core-dot" />
+            <span className="impact-core-pulse" />
           </div>
         </div>
       </div>
