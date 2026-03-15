@@ -9,6 +9,17 @@ import { requireRole } from "@/lib/auth";
 import { formatDate, formatDateTime, getDaysUntil } from "@/lib/utils";
 import { CalendarClock, CheckCircle2, HeartPulse } from "lucide-react";
 
+const DONATION_ELIGIBILITY_WINDOW_DAYS = 56;
+
+function addDays(value: string, days: number) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString();
+}
+
 const verificationLabels: Array<{ key: string; label: string }> = [
   { key: "registered", label: "Registered" },
   { key: "id_verified", label: "ID verified" },
@@ -26,7 +37,15 @@ export default async function DonorDashboardPage({
   const profileUpdated = params.profileUpdated === "1";
   const { supabase, profile } = await requireRole(["donor", "admin"]);
 
-  const [donorProfileResult, verificationResult, appointmentsResult, alertsResult, responsesResult, donationsResult] =
+  const [
+    donorProfileResult,
+    verificationResult,
+    appointmentsResult,
+    alertsResult,
+    responsesResult,
+    donationsResult,
+    latestCompletedDonationResult,
+  ] =
     await Promise.all([
       supabase.from("donor_profiles").select("*").eq("profile_id", profile.id).maybeSingle(),
       supabase
@@ -54,6 +73,15 @@ export default async function DonorDashboardPage({
         .from("donation_history")
         .select("id", { count: "exact", head: true })
         .eq("donor_profile_id", profile.id),
+      supabase
+        .from("appointments")
+        .select("scheduled_at")
+        .eq("donor_profile_id", profile.id)
+        .eq("appointment_type", "donation")
+        .eq("status", "completed")
+        .order("scheduled_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
   const donorProfile = donorProfileResult.data;
@@ -62,13 +90,22 @@ export default async function DonorDashboardPage({
   const alerts = alertsResult.data ?? [];
   const responses = responsesResult.data ?? [];
   const totalDonations = donationsResult.count ?? 0;
+  const latestCompletedDonationDate = latestCompletedDonationResult.data?.scheduled_at ?? null;
+  const nextEligibleDonationDate = latestCompletedDonationDate
+    ? addDays(latestCompletedDonationDate, DONATION_ELIGIBILITY_WINDOW_DAYS)
+    : null;
 
   const responseByAlert = new Map<number, string>();
   for (const response of responses) {
     responseByAlert.set(response.alert_id, response.response_status);
   }
 
-  const daysUntilNextEligible = getDaysUntil(donorProfile?.next_eligible_donation_date);
+  const daysUntilNextEligible = getDaysUntil(nextEligibleDonationDate);
+  const eligibilityStatusText = !latestCompletedDonationDate
+    ? "No completed donations yet"
+    : daysUntilNextEligible !== null && daysUntilNextEligible > 0
+      ? "Not yet eligible"
+      : "Eligible again";
 
   return (
     <>
@@ -109,12 +146,17 @@ export default async function DonorDashboardPage({
           <CardHeader>
             <CardDescription>Next eligible donation</CardDescription>
             <CardTitle className="text-base">
-              {donorProfile?.next_eligible_donation_date
-                ? `${formatDate(donorProfile.next_eligible_donation_date)}${
-                    daysUntilNextEligible !== null ? ` (${daysUntilNextEligible} days)` : ""
+              {nextEligibleDonationDate
+                ? `${formatDate(nextEligibleDonationDate)}${
+                    daysUntilNextEligible !== null
+                      ? daysUntilNextEligible > 0
+                        ? ` (${daysUntilNextEligible} days)`
+                        : " (eligible now)"
+                      : ""
                   }`
-                : "Not available"}
+                : "No completed donations yet"}
             </CardTitle>
+            <CardDescription>{eligibilityStatusText}</CardDescription>
           </CardHeader>
         </Card>
       </div>

@@ -70,17 +70,13 @@ export default async function Home({
   } = await supabase.auth.getUser();
   let roleHomePath: string | null = null;
 
-  if (user && !fromDashboard) {
+  if (user) {
     try {
       const profile = await ensureProfileForUser(supabase, user);
-      roleHomePath = getRoleHomePath(profile.role);
-      redirect(roleHomePath);
+      roleHomePath = fromDashboard ? "/dashboard" : getRoleHomePath(profile.role);
     } catch {
-      redirect("/onboarding");
+      roleHomePath = "/onboarding";
     }
-  }
-  if (user && fromDashboard) {
-    roleHomePath = "/dashboard";
   }
 
   const [
