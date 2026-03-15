@@ -50,6 +50,8 @@ export async function updateSession(request: NextRequest) {
   const userId = typeof user?.sub === "string" ? user.sub : null;
   const isProtectedPath =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/onboarding") ||
     pathname.startsWith("/donor") ||
     pathname.startsWith("/staff") ||
     pathname.startsWith("/protected");
@@ -72,6 +74,12 @@ export async function updateSession(request: NextRequest) {
 
   const role = profile?.role ?? "donor";
 
+  if (pathname.startsWith("/admin") && role !== "admin") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
   if (pathname.startsWith("/staff") && role !== "blood_bank_staff" && role !== "admin") {
     const url = request.nextUrl.clone();
     url.pathname = "/donor";
@@ -85,7 +93,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (pathname === "/dashboard") {
-    if (role === "blood_bank_staff" || role === "admin") {
+    if (role === "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin";
+      return NextResponse.redirect(url);
+    }
+    if (role === "blood_bank_staff") {
       const url = request.nextUrl.clone();
       url.pathname = "/staff";
       return NextResponse.redirect(url);

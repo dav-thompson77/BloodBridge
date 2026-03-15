@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { User } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Profile, UserRole } from "@/lib/types";
 
 const VALID_ROLES: UserRole[] = ["donor", "blood_bank_staff", "admin"];
@@ -11,8 +13,16 @@ function normalizeRole(value: unknown): UserRole {
   return "donor";
 }
 
-async function ensureProfile(authUserId: string, email: string, fullName: string) {
-  const supabase = await createClient();
+export async function ensureProfileForUser(
+  supabase: SupabaseClient,
+  user: Pick<User, "id" | "email" | "user_metadata">,
+) {
+  const authUserId = user.id;
+  const email = user.email ?? "unknown@bloodbridge.app";
+  const fullName =
+    (typeof user.user_metadata?.full_name === "string" &&
+      user.user_metadata.full_name.trim()) ||
+    email.split("@")[0];
 
   const { data: existing, error: existingError } = await supabase
     .from("profiles")
@@ -25,7 +35,7 @@ async function ensureProfile(authUserId: string, email: string, fullName: string
   }
 
   if (existing) {
-    return existing as Profile;
+    return { ...existing, role: normalizeRole(existing.role) } as Profile;
   }
 
   const { data: inserted, error: insertError } = await supabase
@@ -61,11 +71,14 @@ async function ensureProfile(authUserId: string, email: string, fullName: string
     { onConflict: "donor_profile_id" },
   );
 
-  return inserted as Profile;
+  return { ...inserted, role: normalizeRole(inserted.role) } as Profile;
 }
 
 export function getRoleHomePath(role: UserRole) {
-  if (role === "admin" || role === "blood_bank_staff") {
+  if (role === "admin") {
+    return "/admin";
+  }
+  if (role === "blood_bank_staff") {
     return "/staff";
   }
   return "/donor";
@@ -82,15 +95,9 @@ export async function requireAuthProfile() {
     redirect("/auth/login");
   }
 
-  const email = user.email ?? "unknown@bloodbridge.app";
-  const fullName =
-    (typeof user.user_metadata?.full_name === "string" &&
-      user.user_metadata.full_name.trim()) ||
-    email.split("@")[0];
+  const profile = await ensureProfileForUser(supabase, user);
 
-  const profile = await ensureProfile(user.id, email, fullName);
-
-  return { supabase, user, profile: { ...profile, role: normalizeRole(profile.role) } };
+  return { supabase, user, profile };
 }
 
 export async function requireRole(allowedRoles: UserRole[]) {
