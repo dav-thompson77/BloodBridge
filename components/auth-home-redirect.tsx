@@ -19,8 +19,17 @@ export function AuthHomeRedirect() {
 
     const supabase = createClient();
 
+    const hasAuthHash =
+      window.location.hash.includes("access_token") ||
+      window.location.hash.includes("refresh_token");
+
+    // Only redirect from landing when handling auth hash links.
+    // Logged-in users visiting home intentionally should stay on home.
+    if (!hasAuthHash) {
+      return;
+    }
+
     const settleAuth = async () => {
-      await supabase.auth.getSession();
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -30,16 +39,7 @@ export function AuthHomeRedirect() {
       }
     };
 
-    // Handles links that return tokens in hash fragments.
-    if (
-      window.location.hash.includes("access_token") ||
-      window.location.hash.includes("refresh_token")
-    ) {
-      void settleAuth();
-    } else {
-      // If session already exists, skip landing and enter dashboard.
-      void settleAuth();
-    }
+    void settleAuth();
 
     const {
       data: { subscription },
