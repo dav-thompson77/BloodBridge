@@ -21,7 +21,6 @@ import { AuthHomeRedirect } from "@/components/auth-home-redirect";
 import { ImpactNetwork } from "@/components/landing/impact-network";
 import { ensureProfileForUser, getRoleHomePath } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { getPublicUrgentRequests } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 import {
   Building2,
@@ -50,7 +49,6 @@ export default async function Home({
     params.token_hash.length > 0 &&
     typeof params.type === "string" &&
     params.type.length > 0;
-  const fromDashboard = params.from === "dashboard";
 
   if (hasCode || hasTokenHash) {
     const callbackParams = new URLSearchParams();
@@ -69,14 +67,15 @@ export default async function Home({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  let roleHomePath: string | null = null;
 
+  // Get role path for the nav button only — do NOT redirect
+  let roleHomePath: string | null = null;
   if (user) {
     try {
       const profile = await ensureProfileForUser(supabase, user);
-      roleHomePath = fromDashboard ? "/dashboard" : getRoleHomePath(profile.role);
+      roleHomePath = getRoleHomePath(profile.role);
     } catch {
-      roleHomePath = "/onboarding";
+      roleHomePath = "/dashboard";
     }
   }
 
@@ -85,7 +84,7 @@ export default async function Home({
     donorsCountResult,
     alertsCountResult,
     responsesCountResult,
-    urgentRequests,
+    urgentRequestsResult,
     recentResponsesResult,
     bookedAppointmentsResult,
     activeCentresResult,
@@ -102,7 +101,14 @@ export default async function Home({
       .from("donor_alert_responses")
       .select("id", { head: true, count: "exact" })
       .neq("response_status", "pending"),
-    getPublicUrgentRequests(4),
+    supabase
+      .from("blood_requests")
+      .select(
+        "id, blood_type_needed, urgency, required_by, blood_centers(name, parish)",
+      )
+      .eq("status", "active")
+      .order("required_by", { ascending: true })
+      .limit(4),
     supabase
       .from("donor_alert_responses")
       .select("id, response_status, responded_at")
@@ -127,6 +133,7 @@ export default async function Home({
   const donorCount = donorsCountResult.count ?? 0;
   const alertCount = alertsCountResult.count ?? 0;
   const responseCount = responsesCountResult.count ?? 0;
+  const urgentRequests = urgentRequestsResult.data ?? [];
   const recentResponses = recentResponsesResult.data ?? [];
   const bookedAppointments = bookedAppointmentsResult.data ?? [];
   const activeCentres = activeCentresResult.data ?? [];
@@ -239,9 +246,7 @@ export default async function Home({
 
   while (liveFeed.length < 4) {
     const nextFallback = fallbackLiveFeed[liveFeed.length];
-    if (!nextFallback) {
-      break;
-    }
+    if (!nextFallback) break;
     liveFeed.push(nextFallback);
   }
 
@@ -251,7 +256,7 @@ export default async function Home({
       <section className="motion-fade-up border-b bg-card">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 md:px-6">
           <Link
-            href={user ? "/?from=dashboard" : "/"}
+            href="/"
             className="flex items-center gap-2 text-lg font-semibold"
           >
             <span className="float-slow inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -274,7 +279,7 @@ export default async function Home({
             <ThemeSwitcher />
             {roleHomePath ? (
               <Button asChild>
-                <Link href={roleHomePath}>Return to dashboard</Link>
+                <Link href={roleHomePath}>Go to dashboard</Link>
               </Button>
             ) : (
               <>
@@ -382,7 +387,6 @@ export default async function Home({
                   const centre = Array.isArray(request.blood_centers)
                     ? request.blood_centers[0]
                     : request.blood_centers;
-
                   return (
                     <div
                       key={request.id}
@@ -422,33 +426,25 @@ export default async function Home({
         <div className="grid gap-3 rounded-xl border bg-card p-3 md:grid-cols-4">
           <Card className="motion-fade-up motion-delay-1 hover-pop border-0 bg-transparent shadow-none">
             <CardContent className="p-3">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Coverage
-              </p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Coverage</p>
               <p className="mt-1 text-xl font-semibold">{displayCentreCount} blood centres</p>
             </CardContent>
           </Card>
           <Card className="motion-fade-up motion-delay-2 hover-pop border-0 bg-transparent shadow-none">
             <CardContent className="p-3">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Donor data
-              </p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Donor data</p>
               <p className="mt-1 text-xl font-semibold">{displayDonorCount} donor profiles</p>
             </CardContent>
           </Card>
           <Card className="motion-fade-up motion-delay-3 hover-pop border-0 bg-transparent shadow-none">
             <CardContent className="p-3">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Communication
-              </p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Communication</p>
               <p className="mt-1 text-xl font-semibold">{displayAlertCount} realtime alerts</p>
             </CardContent>
           </Card>
           <Card className="motion-fade-up motion-delay-4 hover-pop border-0 bg-transparent shadow-none">
             <CardContent className="p-3">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Coordination
-              </p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Coordination</p>
               <p className="mt-1 text-xl font-semibold">{displayResponseCount} responses logged</p>
             </CardContent>
           </Card>
@@ -458,9 +454,9 @@ export default async function Home({
       <section className="mx-auto w-full max-w-6xl px-4 pb-8 md:px-6">
         <Card className="motion-fade-up hover-pop border-primary/20">
           <CardHeader>
-            <CardTitle>Live feed</CardTitle>
+            <CardTitle>Live demo feed</CardTitle>
             <CardDescription>
-              Current coordination updates.
+              Current coordination updates for judges and demo observers.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -511,18 +507,14 @@ export default async function Home({
                 </p>
               </div>
               <div className="hover-pop rounded-lg border p-4">
-                <p className="mb-2 text-sm font-semibold text-primary">
-                  2. Match + engage
-                </p>
+                <p className="mb-2 text-sm font-semibold text-primary">2. Match + engage</p>
                 <p className="text-sm text-muted-foreground">
                   Staff create blood requests, generate AI outreach copy, and
                   contact matching eligible donors instantly.
                 </p>
               </div>
               <div className="hover-pop rounded-lg border p-4">
-                <p className="mb-2 text-sm font-semibold text-primary">
-                  3. Schedule + respond
-                </p>
+                <p className="mb-2 text-sm font-semibold text-primary">3. Schedule + respond</p>
                 <p className="text-sm text-muted-foreground">
                   Donors respond in-app, appointments are coordinated, and teams
                   see realtime status updates across dashboards.
@@ -588,7 +580,7 @@ export default async function Home({
               request, ready to copy and send.
             </p>
             <Badge variant="outline" className="border-primary/30 text-primary">
-              Ready messaging
+              Demo-ready messaging
             </Badge>
           </CardContent>
         </Card>
@@ -599,8 +591,7 @@ export default async function Home({
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <Building2 className="h-3.5 w-3.5 text-primary" />
-            Built for blood services, hospitals, and donor coordination teams in
-            Jamaica.
+            Built for blood services, hospitals, and donor coordination teams in Jamaica.
           </div>
           <Button asChild variant="link" className="h-auto p-0 text-xs">
             <Link href="/auth/sign-up?role=blood_bank_staff">
