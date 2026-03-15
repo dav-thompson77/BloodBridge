@@ -188,7 +188,7 @@ cp .env.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://znmzisdzzkifinjlylco.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_DAj5lxE9Td4QQBS6As_h_w_5riUAxc7
-NEXT_PUBLIC_SITE_URL=https://your-vercel-domain.vercel.app
+NEXT_PUBLIC_SITE_URL=https://hospital-donor-app.vercel.app
 OPENROUTER_API_KEY=your_openrouter_api_key
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_MODEL=openai/gpt-4o-mini
@@ -196,7 +196,7 @@ TWILIO_ACCOUNT_SID=your_twilio_account_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
 TWILIO_FROM_NUMBER=+17712521684
 TWILIO_MESSAGING_SERVICE_SID=MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_STATUS_CALLBACK_URL=https://your-vercel-domain.vercel.app/api/twilio/sms/status
+TWILIO_STATUS_CALLBACK_URL=https://hospital-donor-app.vercel.app/api/twilio/sms/status
 ```
 
 4. Apply SQL:
@@ -254,11 +254,11 @@ where email = 'admin-user@example.com';
 3. Deploy.
 4. Ensure the Supabase migration + seed SQL has been run in the connected Supabase project.
 5. In Supabase Auth settings, confirm Site URL + Redirect URLs include:
-   - `https://your-vercel-domain.vercel.app/auth/callback`
-   - `https://your-vercel-domain.vercel.app/dashboard`
+   - `https://hospital-donor-app.vercel.app/auth/callback`
+   - `https://hospital-donor-app.vercel.app/dashboard`
 6. Add OpenRouter and Twilio secrets to local env, Vercel env, and any CI secret store used for deployments.
 7. In Twilio Phone Number config (Messaging):
-   - **Webhook URL**: `https://your-vercel-domain.vercel.app/api/twilio/sms/reply`
+   - **Webhook URL**: `https://hospital-donor-app.vercel.app/api/twilio/sms/reply`
    - **Method**: `POST`
 8. Ensure `TWILIO_FROM_NUMBER` uses strict E.164 format (no spaces), e.g. `+17712521684`.
 
