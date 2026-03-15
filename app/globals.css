@@ -208,17 +208,28 @@
 }
 
 .impact-network-scene {
+  --impact-tilt-x: 0deg;
+  --impact-tilt-y: 0deg;
+  --impact-spin-duration: 20s;
   position: relative;
   height: 320px;
   perspective: 900px;
   overflow: hidden;
 }
 
+.impact-network-tilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--impact-tilt-x)) rotateY(var(--impact-tilt-y));
+  transition: transform 140ms linear;
+}
+
 .impact-network-rotator {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  animation: networkRotate 20s linear infinite;
+  animation: networkRotate var(--impact-spin-duration) linear infinite;
 }
 
 .impact-orbit {
@@ -324,10 +335,16 @@
   .motion-fade-up,
   .float-slow,
   .live-badge-pulse,
+  .impact-network-tilt,
   .impact-network-rotator,
   .impact-node,
   .impact-core-pulse {
     animation: none !important;
+  }
+
+  .impact-network-tilt {
+    transition: none !important;
+    transform: none !important;
   }
 
   .motion-fade-up {
